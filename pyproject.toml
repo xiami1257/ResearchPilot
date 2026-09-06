@@ -1,0 +1,19 @@
+# 包声明文件:让 pip 能以 editable 模式安装本项目的 src/ 包
+#   pip install -e .  之后,任意入口脚本都能 import researchpilot
+#
+# 取舍说明:项目依赖仍统一写在 requirements.txt(与 taobao 风格一致),
+# 这里 dependencies 留空避免双清单打架。这是有意为之的简化,
+# 生产项目通常只维护 pyproject.toml 一份清单。
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "researchpilot"
+version = "0.1.0"
+description = "Multi-agent research assistant: topic in, cited report out"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]

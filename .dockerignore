@@ -1,0 +1,12 @@
+.git
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+*.egg-info
+researchpilot.db
+web/node_modules
+web/dist
+tests
+docs
+*.md
