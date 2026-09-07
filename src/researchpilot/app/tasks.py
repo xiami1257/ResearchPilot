@@ -30,7 +30,12 @@ from ..core.reviewer import run_review_phase
 from ..core.writer import Writer
 from ..llm.client import LLMClient
 from ..search.extract import fetch_and_extract
-from ..search.providers import DuckDuckGoSearch, SearchProvider, SerperSearch
+from ..search.providers import (
+    DuckDuckGoSearch,
+    SearchProvider,
+    SerperSearch,
+    TavilySearch,
+)
 from .settings import Settings
 from .store import Store
 
@@ -196,9 +201,11 @@ def build_default_runner(settings: Settings) -> SessionRunner:
         api_key=settings.llm_api_key,
         model=settings.llm_model,
     )
-    if settings.serper_api_key:
-        search: SearchProvider = SerperSearch(api_key=settings.serper_api_key)
-    else:  # 无 Serper key 兜底 DDG(效果弱但任何环境可跑)
+    if settings.tavily_api_key:
+        search: SearchProvider = TavilySearch(api_key=settings.tavily_api_key)
+    elif settings.serper_api_key:
+        search = SerperSearch(api_key=settings.serper_api_key)
+    else:  # 无任何 key 兜底 DDG(效果弱但任何环境可跑)
         search = DuckDuckGoSearch()
     store = Store(settings.db_path)
     return SessionRunner(llm=llm, search=search, store=store)

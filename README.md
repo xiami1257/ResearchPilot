@@ -23,7 +23,7 @@ Reviewer ──交叉核验──► Writer ──► Markdown 报告(带 [n] �
               事件总线 → SSE → 网页实时看板
 ```
 
-后端:FastAPI + 自研编排内核 + SQLite | 前端:React + TypeScript + Vite | LLM:OpenAI 兼容(默认 DeepSeek) | 检索:Serper / DuckDuckGo
+后端:FastAPI + 自研编排内核 + SQLite | 前端:React + TypeScript + Vite | LLM:OpenAI 兼容(默认 DeepSeek) | 检索:Tavily / Serper / DuckDuckGo(按 key 自动路由)
 
 详细设计见 [PLAN.md](PLAN.md)。
 
@@ -36,7 +36,8 @@ pip install -e .                  # 以 editable 模式安装本包,入口脚本
 
 # 2. 配置环境变量(项目不引 dotenv,直接 export;Windows PowerShell 用 $env:LLM_API_KEY="…")
 export LLM_API_KEY=sk-...         # 必填:OpenAI 兼容 API key(默认走 DeepSeek,可用 LLM_BASE_URL/LLM_MODEL 覆盖)
-export SERPER_API_KEY=...         # 可选:serper.dev 搜索 key;不配则自动降级 DuckDuckGo
+export SERPER_API_KEY=...         # 可选:serper.dev 搜索 key;也可用 export TAVILY_API_KEY=...(有 Tavily key 时自动优先)
+                                  # 都不配则自动降级 DuckDuckGo(国内网络下检索效果差)
 
 # 3. 启动(单服务:FastAPI 同时托管前端与 API)
 cd web && npm install && npm run build     # 先构建前端(仅首次/改前端后需要)
@@ -61,7 +62,7 @@ python scripts/run_demo_topics.py   # 批量跑演示主题并输出质量摘要
 |---|---|
 | Agent 编排 | 自研:事件总线 + 阶段状态机(Planner / Researcher × N / Reviewer / Writer) |
 | LLM 接入 | httpx 直连 OpenAI 兼容 API(默认 DeepSeek,可换任意兼容服务) |
-| 网页检索 | Serper API(默认)+ DuckDuckGo 兜底;trafilatura 正文提取 |
+| 网页检索 | Tavily / Serper(配 key 自动启用)+ DuckDuckGo 零 key 兜底;trafilatura 正文提取 |
 | 后端 | Python 3.11 · FastAPI · SSE · SQLite |
 | 前端 | React 18 · TypeScript · Vite(自写 CSS) |
 | 测试 | pytest:单元 / 集成(mock)/ 真机 e2e 三层 |

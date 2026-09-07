@@ -1,10 +1,12 @@
-"""检索服务提供方:协议 + 两个实现。
+"""检索服务提供方:协议 + 三个实现。
 
 架构:
 - Researcher 只依赖 SearchProvider 协议,不知道背后是哪个服务商
 - 生产默认 Serper(免费额度足够 demo,返回结构化 JSON 质量稳定)
+- Tavily:配 TAVILY_API_KEY 即自动启用(结构化 JSON,免费档每月 1000 次)
 - DuckDuckGo 是零 key 兜底:任何环境都能跑(代价:HTML 接口偶发
   反爬、质量不稳) —— 宁可慢/弱,不可没有
+- 具体选哪个由 app/tasks.build_default_runner 按 key 存在性路由
 
 实现纪律:所有错误包装成 SearchError(上层统一处理),不泄漏 httpx 异常。
 """
@@ -91,6 +93,81 @@ class SerperSearch:
                 snippet = (item.get("snippet") or "").strip()
                 if url and title:
                     out.append(SearchSource(url=url, title=title, snippet=snippet))
+            return out
+
+
+class TavilySearch:
+    """Tavily 网页搜索(结构化 JSON,每 query 一次 POST)。
+
+    results[].content 是网页正文的提取摘要,可能很长,截断后再当
+    snippet 存(正文仍由 fetch 单独抓取,摘要只作兜底)。
+    """
+
+    ENDPOINT = "https://api.tavily.com/search"
+    SNIPPET_MAX = 500
+
+    def __init__(
+        self,
+        api_key: str,
+        *,
+        max_retries: int = 2,
+        retry_delay: float = 0.5,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
+        self._api_key = api_key
+        self._max_retries = max_retries
+        self._retry_delay = retry_delay
+        self._transport = transport
+
+    async def search(self, query: str, top_k: int = 5) -> list[SearchSource]:
+        last_error: Exception | None = None
+        for attempt in range(self._max_retries + 1):
+            try:
+                return await self._search_once(query, top_k)
+            except _RetryableSearchError as e:
+                last_error = e
+                if attempt < self._max_retries:
+                    await asyncio.sleep(self._retry_delay * (2**attempt))
+
+        raise SearchError(f"Tavily 检索失败(重试耗尽): {last_error}")
+
+    async def _search_once(self, query: str, top_k: int) -> list[SearchSource]:
+        async with httpx.AsyncClient(transport=self._transport) as client:
+            try:
+                resp = await client.post(
+                    self.ENDPOINT,
+                    json={"query": query, "max_results": top_k},
+                    headers={"Authorization": f"Bearer {self._api_key}"},
+                    timeout=15.0,
+                )
+            except (httpx.TransportError, httpx.TimeoutException) as e:
+                raise _RetryableSearchError(f"网络错误: {e}") from e
+
+            if resp.status_code in (429, 500, 502, 503, 504):
+                raise _RetryableSearchError(f"上游限流/错误: HTTP {resp.status_code}")
+            if resp.status_code >= 400:
+                raise SearchError(
+                    f"Tavily 拒绝请求: HTTP {resp.status_code} {resp.text[:200]}"
+                )
+
+            try:
+                results = resp.json().get("results", [])
+            except ValueError as e:
+                raise SearchError(f"Tavily 响应不是合法 JSON: {e}") from e
+
+            out: list[SearchSource] = []
+            for item in results[:top_k]:
+                url = (item.get("url") or "").strip()
+                title = (item.get("title") or "").strip()
+                content = (item.get("content") or "").strip()
+                if url and title:
+                    out.append(
+                        SearchSource(
+                            url=url,
+                            title=title,
+                            snippet=content[: self.SNIPPET_MAX],
+                        )
+                    )
             return out
 
 

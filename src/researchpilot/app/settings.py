@@ -12,8 +12,9 @@ class Settings:
     llm_base_url: str
     llm_api_key: str
     llm_model: str
-    search_provider: str  # "serper" | "ddg"
+    search_provider: str  # 预留:实际路由按 key 存在性(tasks.build_default_runner)
     serper_api_key: str
+    tavily_api_key: str
     db_path: str
 
     @property
@@ -22,7 +23,7 @@ class Settings:
 
     @property
     def search_ready(self) -> bool:
-        return self.serper_api_key != "" or self.search_provider == "ddg"
+        return bool(self.tavily_api_key or self.serper_api_key) or self.search_provider == "ddg"
 
 
 def load_settings() -> Settings:
@@ -32,5 +33,6 @@ def load_settings() -> Settings:
         llm_model=os.getenv("LLM_MODEL", "deepseek-chat"),
         search_provider=os.getenv("SEARCH_PROVIDER", "serper"),
         serper_api_key=os.getenv("SERPER_API_KEY", ""),
+        tavily_api_key=os.getenv("TAVILY_API_KEY", ""),
         db_path=os.getenv("DB_PATH", "researchpilot.db"),
     )

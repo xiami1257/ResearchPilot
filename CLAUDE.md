@@ -38,8 +38,9 @@ cd web && npm run build                  # 构建产物 web/dist 由 FastAPI 托
 | `LLM_BASE_URL` | OpenAI 兼容 API base | `https://api.deepseek.com` |
 | `LLM_API_KEY` | API key(**测试 e2e/真机必配**) | 空 |
 | `LLM_MODEL` | 模型名 | `deepseek-chat` |
-| `SEARCH_PROVIDER` | `serper` 或 `ddg` | `serper`(无 key 自动降级 `ddg`) |
+| `SEARCH_PROVIDER` | 预留(实际按 key 自动路由:Tavily > Serper > DDG) | `serper` |
 | `SERPER_API_KEY` | serper.dev 免费 key | 空 |
+| `TAVILY_API_KEY` | Tavily 免费 key(有值则自动优先于 Serper) | 空 |
 
 ## 架构速览(改代码前先看对应文件)
 

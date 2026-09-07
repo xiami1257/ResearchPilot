@@ -196,3 +196,4 @@ agent01/
 |---|---|
 | 2026-09-06 | 初稿:方向 A「多 Agent 研究助手」定稿,决策固化 |
 | 2026-09-06 | M1-M4 落地(79 passed);M5 前端三视图+静态托管+Dockerfile;新增引用脚注确定性生成(render_references)与 e2e 冒烟/演示脚本;M6 仅剩部署与真机打磨 |
+| 2026-09-07 | 检索新增 Tavily provider(配 TAVILY_API_KEY 自动优先于 Serper),含单测;D3 保持「Serper 默认、key 路由、DDG 兜底」语义不变 |
