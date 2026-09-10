@@ -37,6 +37,11 @@ export async function fetchSnapshot(runId: string): Promise<SessionSnapshot> {
   return (await check(await fetch(`${BASE}/sessions/${runId}`))) as SessionSnapshot;
 }
 
+/** 删除历史报告(后端对运行中任务返回 409,由调用方提示)。 */
+export async function deleteSession(runId: string): Promise<void> {
+  await check(await fetch(`${BASE}/sessions/${runId}`, { method: 'DELETE' }));
+}
+
 /**
  * 订阅 SSE 增量事件流。
  * @param onEvent 每条事件回调

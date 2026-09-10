@@ -11,7 +11,7 @@
 - **交叉核验防幻觉**:Reviewer 逐条核验引用与事实,证据不足处**显式标注**而非编造
 - **过程可观测**:SSE 实时推送每个 Agent 的行为——检索了什么、看到了什么、如何判断
 - **带脚注的报告**:正文引用以 [1][2] 标注,文末列出来源 URL
-- **历史回看**:报告与会话事件持久化(SQLite),随时可查
+- **历史回看与删除**:报告与会话事件持久化(SQLite),随时可查;可删除不需要的历史(运行中的任务受保护)
 
 ## 架构
 
@@ -41,9 +41,9 @@ export SERPER_API_KEY=...         # 可选:serper.dev 搜索 key;也可用 expor
 
 # 3. 启动(单服务:FastAPI 同时托管前端与 API)
 cd web && npm install && npm run build     # 先构建前端(仅首次/改前端后需要)
-cd .. && python scripts/serve.py           # http://127.0.0.1:8000(端口被占可 RP_PORT=8001)
+cd .. && python scripts/serve.py           # http://127.0.0.1:8001(默认端口,与花生壳内网穿透映射一致)
 
-# 前端 dev 模式(改 UI 热更新,可选):cd web && npm run dev → 5173 端口,代理 /api 到 8000
+# 前端 dev 模式(改 UI 热更新,可选):cd web && npm run dev → 5173 端口,代理 /api 到 8001
 ```
 
 配置项全表见 [CLAUDE.md](CLAUDE.md)「环境变量」;DB 默认落在当前目录 researchpilot.db(可用 `DB_PATH` 改)。

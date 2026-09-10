@@ -27,7 +27,7 @@ python scripts/serve.py            # 启动后端(dev: uvicorn --reload)
 python -m pytest -q                      # 单元+集成测试(mock LLM/检索,无网络)
 python -m pytest -m e2e -q               # 真 LLM 冒烟(需配 LLM key,慢)
 python scripts/run_demo_topics.py        # 批量跑演示主题并输出质量摘要
-cd web && npm install && npm run dev     # 前端 dev(代理 /api → 127.0.0.1:8000)
+cd web && npm install && npm run dev     # 前端 dev(代理 /api → 127.0.0.1:8001)
 cd web && npm run build                  # 构建产物 web/dist 由 FastAPI 托管(生产单服务)
 ```
 

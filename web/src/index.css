@@ -245,8 +245,15 @@ button {
   gap: 6px;
 }
 
+.history-item {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
 .history-row {
-  width: 100%;
+  flex: 1;
+  min-width: 0; /* flex 子项默认 min-width:auto,不加长标题会撑破行、省略号失效 */
   display: flex;
   align-items: center;
   gap: 12px;
@@ -273,6 +280,28 @@ button {
   color: var(--text-dim);
   font-size: 12px;
   flex-shrink: 0;
+}
+
+.history-del {
+  flex-shrink: 0;
+  width: 34px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-dim);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.history-del:hover:not(:disabled) {
+  border-color: rgba(248, 113, 113, 0.55);
+  color: #f87171;
+}
+
+.history-del:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .badge {

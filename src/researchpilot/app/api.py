@@ -4,6 +4,7 @@
   POST   /api/sessions              创建研究任务 -> 202 + run_id(立即返回,后台跑)
   GET    /api/sessions              会话列表(历史)
   GET    /api/sessions/{run_id}     会话详情(状态 + 全部事件 + 报告) -> 快照
+  DELETE /api/sessions/{run_id}     删除历史报告(含全部事件;运行中不可删)
   GET    /api/sessions/{run_id}/events  SSE 实时流(增量事件)
 
 前后端时序约定(重要):
@@ -82,6 +83,18 @@ def create_app(
         if session is None:
             raise HTTPException(status_code=404, detail="session not found")
         return {"session": session, "events": store.list_events(run_id)}
+
+    @app.delete("/api/sessions/{run_id}")
+    def delete_session(run_id: str) -> dict:
+        """删除历史报告。运行中任务拒绝(后台仍在写事件,删了会数据回流)。"""
+        session = store.get_session(run_id)
+        if session is None:
+            raise HTTPException(status_code=404, detail="session not found")
+        if session["status"] == "running":
+            raise HTTPException(status_code=409, detail="任务运行中,暂不能删除")
+        store.delete_session(run_id)
+        logger.info("session %s deleted", run_id)
+        return {"deleted": run_id}
 
     @app.get("/api/sessions/{run_id}/events")
     async def session_events(run_id: str) -> StreamingResponse:

@@ -9,6 +9,12 @@ __pycache__/
 researchpilot.db
 researchpilot.db-journal
 
+# 本地草稿/个人素材(不进公开仓库)
+exp.txt
+sample.txt
+final_report.txt
+*.local.txt
+
 # 前端
 web/node_modules/
 web/dist/

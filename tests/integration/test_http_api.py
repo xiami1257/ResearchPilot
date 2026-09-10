@@ -3,6 +3,7 @@
 覆盖:
 - POST 建任务:202 + run_id;后台任务在 TestClient 生命周期内跑完 -> 详情 succeeded
 - GET 列表 / 详情快照(会话 + 全量事件)/ 404
+- DELETE 删除历史(终态可删/不存在 404/运行中 409)
 - 参数校验 422
 - SSE:终态任务订阅立即结束(增量模式不补发历史)
 
@@ -78,6 +79,36 @@ def test_sse_on_finished_session_closes_immediately(api):
         assert r.status_code == 200
         assert r.headers["content-type"].startswith("text/event-stream")
         assert r.text == ""
+
+
+def test_delete_finished_session_removes_all_traces(api):
+    """终态会话可删:列表消失、详情 404、事件一并清空。"""
+    app = api
+    with TestClient(app) as client:
+        run_id = _create(client).json()["run_id"]
+        assert client.delete(f"/api/sessions/{run_id}").status_code == 200
+
+        listed = client.get("/api/sessions").json()["sessions"]
+        assert all(s["run_id"] != run_id for s in listed)
+        assert client.get(f"/api/sessions/{run_id}").status_code == 404
+        # 事件也必须删干净(否则回放会复活幽灵会话)
+        assert app.state.runner.store.list_events(run_id) == []
+
+
+def test_delete_missing_session_404(api):
+    with TestClient(api) as client:
+        assert client.delete("/api/sessions/nope").status_code == 404
+
+
+def test_delete_running_session_conflict(api):
+    """运行中拒删:后台任务仍在写事件,删了数据会回流。"""
+    app = api
+    with TestClient(app) as client:
+        app.state.runner.store.create_session(
+            "running01", "进行中的主题", status="running", stage="research"
+        )
+        assert client.delete("/api/sessions/running01").status_code == 409
+        assert client.get("/api/sessions/running01").status_code == 200
 
 
 def test_failure_path_reports_failed_status(api, monkeypatch):

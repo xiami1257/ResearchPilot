@@ -12,9 +12,10 @@ import os
 import uvicorn
 
 if __name__ == "__main__":
-    # RP_PORT 可覆盖默认端口(本机 8000 常被其它服务占用)
+    # 默认 8001:与花生壳内网穿透映射的端口保持一致,启动即对外可用。
+    # RP_PORT 仍可覆盖(如换端口演示)。
     uvicorn.run(
         "researchpilot.app.api:app",
         host="127.0.0.1",
-        port=int(os.getenv("RP_PORT", "8000")),
+        port=int(os.getenv("RP_PORT", "8001")),
     )

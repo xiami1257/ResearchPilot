@@ -1,6 +1,6 @@
 # ResearchPilot 单服务镜像(决策 D8:FastAPI 托管前端构建产物)
 #
-# 用法:docker build -t researchpilot . && docker run -p 8000:8000 \
+# 用法:docker build -t researchpilot . && docker run -p 8001:8001 \
 #          -e LLM_API_KEY=sk-xxx -e SERPER_API_KEY=xxx researchpilot
 
 # ---- 阶段 1:构建前端 ----
@@ -27,5 +27,5 @@ RUN pip install -e .
 
 COPY --from=web /web/dist ./web/dist
 
-EXPOSE 8000
-CMD ["uvicorn", "researchpilot.app.api:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 8001
+CMD ["uvicorn", "researchpilot.app.api:app", "--host", "0.0.0.0", "--port", "8001"]

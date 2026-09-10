@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { createSession, fetchSessions } from '../api';
+import { createSession, deleteSession, fetchSessions } from '../api';
 import type { SessionSummary } from '../types';
 
 /** 预置演示主题(面试/演示直接点,内容真实可讲;真机联调后再精选) */
@@ -42,6 +42,16 @@ export function HomeView({ onStart, onOpen }: Props) {
     } catch (e) {
       setError(e instanceof Error ? e.message : '创建任务失败');
       setBusy(false);
+    }
+  }
+
+  async function remove(runId: string, topic: string) {
+    if (!window.confirm(`删除「${topic}」?\n该报告与全部过程记录将被删除,不可恢复。`)) return;
+    try {
+      await deleteSession(runId);
+      setHistory((h) => h.filter((s) => s.run_id !== runId));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '删除失败');
     }
   }
 
@@ -91,11 +101,20 @@ export function HomeView({ onStart, onOpen }: Props) {
           <h2>历史报告</h2>
           <ul>
             {history.map((s) => (
-              <li key={s.run_id}>
+              <li key={s.run_id} className="history-item">
                 <button className="history-row" onClick={() => onOpen(s.run_id)}>
                   <span className="history-topic">{s.topic}</span>
                   <span className={`badge status-${s.status}`}>{statusLabel(s)}</span>
                   <span className="history-time">{formatTime(s.created_at)}</span>
+                </button>
+                <button
+                  className="history-del"
+                  title={s.status === 'running' ? '任务运行中,暂不能删除' : '删除这条历史'}
+                  disabled={s.status === 'running'}
+                  onClick={() => remove(s.run_id, s.topic)}
+                  aria-label={`删除 ${s.topic}`}
+                >
+                  ×
                 </button>
               </li>
             ))}

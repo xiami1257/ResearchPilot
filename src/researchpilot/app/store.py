@@ -77,6 +77,13 @@ class Store:
             ).fetchone()
         return dict(row) if row else None
 
+    def delete_session(self, run_id: str) -> bool:
+        """删除会话及其全部事件;返回是否命中(False = 不存在)。"""
+        with self._lock, sqlite3.connect(self._db_path) as conn:
+            cur = conn.execute("DELETE FROM sessions WHERE run_id = ?", (run_id,))
+            conn.execute("DELETE FROM events WHERE run_id = ?", (run_id,))
+            return cur.rowcount > 0
+
     def list_sessions(self, limit: int = 50) -> list[dict]:
         with sqlite3.connect(self._db_path) as conn:
             conn.row_factory = sqlite3.Row
